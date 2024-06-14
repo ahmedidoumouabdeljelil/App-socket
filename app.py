@@ -44,18 +44,12 @@ def load_data_and_predict():
                 tension = data.get('Tension', 0)
                 temperature = data.get('Temperature', 0)
                 input_data = np.array([[courant, tension, temperature]], dtype=np.float32)
-                
-                # Normaliser les données
-                #input_data_scaled = scaler.transform(input_data)
-
                 # Exécuter le modèle TFLite
                 interpreter.set_tensor(input_details[0]['index'], input_data)
                 interpreter.invoke()
                 soc = interpreter.get_tensor(output_details[0]['index'])[0]
-                
                 # Convertir ndarray en liste
                 soc_list = soc.tolist()
-                
                 # Émettre l'événement SocketIO avec la prédiction
                 socketio.emit('prediction', {
                     'Courant': courant,
@@ -81,12 +75,8 @@ def get_data():
         tension = data.get('Tension', 0)
         temperature = data.get('Temperature', 0)
         input_data = np.array([[courant, tension, temperature]], dtype=np.float32)
-        
-        # Normaliser les données
-        input_data_scaled = scaler.transform(input_data)
-
         # Exécuter le modèle TFLite pour obtenir la prédiction
-        interpreter.set_tensor(input_details[0]['index'], input_data_scaled)
+        interpreter.set_tensor(input_details[0]['index'], input_data)
         interpreter.invoke()
         soc_prediction = interpreter.get_tensor(output_details[0]['index'])[0]
         
