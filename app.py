@@ -6,6 +6,7 @@ import numpy as np
 import tflite_runtime.interpreter as tflite
 from flask import Flask, render_template, jsonify
 from flask_socketio import SocketIO
+import joblib
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET')
@@ -25,11 +26,14 @@ firebaseConfig = {
 firebase = pyrebase.initialize_app(firebaseConfig)
 db = firebase.database()
 
-# Load the TFLite model
+# Charger le modèle TFLite
 interpreter = tflite.Interpreter(model_path='model_GRU_3.tflite')
 interpreter.allocate_tensors()
 input_details = interpreter.get_input_details()
 output_details = interpreter.get_output_details()
+
+# Recharger le scaler sauvegardé
+scaler = joblib.load('scaler.pkl')
 
 def load_data_and_predict():
     while True:
@@ -41,20 +45,23 @@ def load_data_and_predict():
                 temperature = data.get('Temperature', 0)
                 input_data = np.array([[courant, tension, temperature]], dtype=np.float32)
                 
-                # Run the TFLite model
-                interpreter.set_tensor(input_details[0]['index'], input_data)
+                # Normaliser les données
+                input_data_scaled = scaler.transform(input_data)
+
+                # Exécuter le modèle TFLite
+                interpreter.set_tensor(input_details[0]['index'], input_data_scaled)
                 interpreter.invoke()
                 soc = interpreter.get_tensor(output_details[0]['index'])[0]
                 
-                # Convert ndarray to list
+                # Convertir ndarray en liste
                 soc_list = soc.tolist()
                 
-                # Emit the SocketIO event with the prediction
+                # Émettre l'événement SocketIO avec la prédiction
                 socketio.emit('prediction', {
                     'Courant': courant,
                     'Tension': tension,
                     'Temperature': temperature,
-                    'SOC': soc_list  # Send the list instead of ndarray
+                    'SOC': soc_list  # Envoyer la liste au lieu de ndarray
                 })
             else:
                 print("Les données récupérées ne sont pas au format attendu :", data)
@@ -75,8 +82,11 @@ def get_data():
         temperature = data.get('Temperature', 0)
         input_data = np.array([[courant, tension, temperature]], dtype=np.float32)
         
-        # Exécutez le modèle TFLite pour obtenir la prédiction
-        interpreter.set_tensor(input_details[0]['index'], input_data)
+        # Normaliser les données
+        input_data_scaled = scaler.transform(input_data)
+
+        # Exécuter le modèle TFLite pour obtenir la prédiction
+        interpreter.set_tensor(input_details[0]['index'], input_data_scaled)
         interpreter.invoke()
         soc_prediction = interpreter.get_tensor(output_details[0]['index'])[0]
         
