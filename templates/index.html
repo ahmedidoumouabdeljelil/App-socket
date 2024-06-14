@@ -15,12 +15,25 @@
                 document.getElementById('temperature').innerText = data.Temperature;
                 document.getElementById('soc').innerText = data.SOC_Prediction;
             });
+
+            document.getElementById('fetch-data').addEventListener('click', () => {
+                fetch('/data')
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('courant').innerText = data.Courant;
+                        document.getElementById('tension').innerText = data.Tension;
+                        document.getElementById('temperature').innerText = data.Temperature;
+                        document.getElementById('soc').innerText = data.SOC_Prediction;
+                    })
+                    .catch(error => console.error('Error fetching data:', error));
+            });
         });
     </script>
 </head>
 <body>
     <h1>Real-time Predictions</h1>
     <div>
+        <button id="fetch-data">Fetch Data</button>
         <p>Courant: <span id="courant">0</span></p>
         <p>Tension: <span id="tension">0</span></p>
         <p>Temperature: <span id="temperature">0</span></p>
@@ -28,5 +41,3 @@
     </div>
 </body>
 </html>
-
-
