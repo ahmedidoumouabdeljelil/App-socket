@@ -46,12 +46,15 @@ def load_data_and_predict():
                 interpreter.invoke()
                 soc = interpreter.get_tensor(output_details[0]['index'])[0]
                 
+                # Convert ndarray to list
+                soc_list = soc.tolist()
+                
                 # Emit the SocketIO event with the prediction
                 socketio.emit('prediction', {
                     'Courant': courant,
                     'Tension': tension,
                     'Temperature': temperature,
-                    'SOC': soc.tolist()
+                    'SOC': soc_list  # Send the list instead of ndarray
                 })
             else:
                 print("Les données récupérées ne sont pas au format attendu :", data)
@@ -77,8 +80,11 @@ def get_data():
         interpreter.invoke()
         soc_prediction = interpreter.get_tensor(output_details[0]['index'])[0]
         
+        # Convertir soc_prediction en liste
+        soc_prediction_list = soc_prediction.tolist()
+        
         # Retournez les données de la base de données et la prédiction sous forme de réponse JSON
-        return jsonify({'Courant': courant, 'Tension': tension, 'Temperature': temperature, 'SOC_Prediction': soc_prediction})
+        return jsonify({'Courant': courant, 'Tension': tension, 'Temperature': temperature, 'SOC_Prediction': soc_prediction_list})
     
     except Exception as e:
         return jsonify({'error': str(e)})
@@ -86,7 +92,7 @@ def get_data():
 @app.route('/')
 def index():
     return render_template('index.html')
+
 if __name__ == '__main__':
     threading.Thread(target=load_data_and_predict).start()
     socketio.run(app, debug=True)
-
