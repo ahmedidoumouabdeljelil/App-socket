@@ -6,7 +6,7 @@ import numpy as np
 import tflite_runtime.interpreter as tflite
 from flask import Flask, render_template, jsonify
 from flask_socketio import SocketIO
-import joblib
+#import joblib
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET')
@@ -33,7 +33,7 @@ input_details = interpreter.get_input_details()
 output_details = interpreter.get_output_details()
 
 # Recharger le scaler sauvegardé
-scaler = joblib.load('scaler.pkl')
+#scaler = joblib.load('scaler.pkl')
 
 def load_data_and_predict():
     while True:
@@ -46,7 +46,7 @@ def load_data_and_predict():
                 input_data = np.array([[courant, tension, temperature]], dtype=np.float32)
                 
                 # Normaliser les données
-                input_data_scaled = scaler.transform(input_data)
+                #input_data_scaled = scaler.transform(input_data)
 
                 # Exécuter le modèle TFLite
                 interpreter.set_tensor(input_details[0]['index'], input_data)
