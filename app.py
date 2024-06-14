@@ -75,27 +75,38 @@ def load_data_and_predict():
 
 @app.route('/data')
 def get_data():
+    global last_data
     try:
         # Récupérez les données de la base de données Firebase
         data = db.get().val()
         
-        # Effectuez votre prédiction à partir des données
-        courant = data.get('Courant', 0)
-        tension = data.get('Tension', 0)
-        temperature = data.get('Temperature', 0)
-        input_data = np.array([[courant, tension, temperature]], dtype=np.float32)
-        
-        # Réinitialiser les tenseurs du modèle
-        interpreter.allocate_tensors()
-        interpreter.set_tensor(input_details[0]['index'], input_data)
-        interpreter.invoke()
-        soc_prediction = interpreter.get_tensor(output_details[0]['index'])[0]
-        
-        # Convertir soc_prediction en liste
-        soc_prediction_list = soc_prediction.tolist()
-        
-        # Retournez les données de la base de données et la prédiction sous forme de réponse JSON
-        return jsonify({'Courant': courant, 'Tension': tension, 'Temperature': temperature, 'SOC_Prediction': soc_prediction_list})
+        if isinstance(data, dict):
+            courant = data.get('Courant', 0)
+            tension = data.get('Tension', 0)
+            temperature = data.get('Temperature', 0)
+            
+            # Vérifier si les nouvelles données sont différentes des précédentes
+            new_data = (courant, tension, temperature)
+            if new_data != last_data:
+                last_data = new_data
+                input_data = np.array([[courant, tension, temperature]], dtype=np.float32)
+                
+                # Réinitialiser les tenseurs du modèle
+                interpreter.allocate_tensors()
+                interpreter.set_tensor(input_details[0]['index'], input_data)
+                interpreter.invoke()
+                soc_prediction = interpreter.get_tensor(output_details[0]['index'])[0]
+                
+                # Convertir soc_prediction en liste
+                soc_prediction_list = soc_prediction.tolist()
+                
+                # Retournez les données de la base de données et la prédiction sous forme de réponse JSON
+                return jsonify({'Courant': courant, 'Tension': tension, 'Temperature': temperature, 'SOC_Prediction': soc_prediction_list})
+            else:
+                return jsonify({'message': 'Les données n\'ont pas changé.'})
+        else:
+            print("Les données récupérées ne sont pas au format attendu :", data)
+            return jsonify({'error': 'Les données récupérées ne sont pas au format attendu.'})
     
     except Exception as e:
         return jsonify({'error': str(e)})
