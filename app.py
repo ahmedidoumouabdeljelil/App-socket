@@ -49,7 +49,7 @@ def load_data_and_predict():
                 input_data_scaled = scaler.transform(input_data)
 
                 # Exécuter le modèle TFLite
-                interpreter.set_tensor(input_details[0]['index'], input_data_scaled)
+                interpreter.set_tensor(input_details[0]['index'], input_data)
                 interpreter.invoke()
                 soc = interpreter.get_tensor(output_details[0]['index'])[0]
                 
