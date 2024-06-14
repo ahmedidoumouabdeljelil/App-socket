@@ -8,12 +8,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', (event) => {
-            const socket = io.connect('http://' + document.domain + ':' + location.port);
+            const socket = io();
             socket.on('prediction', (data) => {
                 document.getElementById('courant').innerText = data.Courant;
                 document.getElementById('tension').innerText = data.Tension;
                 document.getElementById('temperature').innerText = data.Temperature;
-                document.getElementById('soc').innerText = data.SOC;
+                document.getElementById('soc').innerText = data.SOC_Prediction;
             });
         });
     </script>
@@ -28,4 +28,5 @@
     </div>
 </body>
 </html>
+
 
