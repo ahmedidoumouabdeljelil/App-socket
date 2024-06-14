@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Predictions</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const socket = io.connect('http://' + document.domain + ':' + location.port);
+            socket.on('prediction', (data) => {
+                document.getElementById('courant').innerText = data.Courant;
+                document.getElementById('tension').innerText = data.Tension;
+                document.getElementById('temperature').innerText = data.Temperature;
+                document.getElementById('soc').innerText = data.SOC;
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Real-time Predictions</h1>
+    <div>
+        <p>Courant: <span id="courant">0</span></p>
+        <p>Tension: <span id="tension">0</span></p>
+        <p>Temperature: <span id="temperature">0</span></p>
+        <p>SOC Prediction: <span id="soc">0</span></p>
+    </div>
+</body>
+</html>
+
