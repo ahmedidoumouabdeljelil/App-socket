@@ -4,5 +4,6 @@ pyrebase4
 numpy
 gunicorn==20.1.0
 tflite-runtime==2.14.0
+joblib
 
 
